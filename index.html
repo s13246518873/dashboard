@@ -84,32 +84,51 @@ body{
 
 .weatherRow{
 
-    width:92%;
+    width:90%;
 
-    margin-top:30px;
+    margin-top:24px;
 
     display:flex;
 
     justify-content:space-between;
 
-    align-items:center;
+    align-items:flex-start;
+}
+
+.weatherTitle{
+
+    font-size:5vw;
+
+    color:#999;
+
+    font-weight:600;
+
+    padding-top:8px;
+}
+
+.weatherRight{
+
+    text-align:right;
 }
 
 .weatherNow{
-    font-size:7vw;
+
+    font-size:8vw;
+
     font-weight:700;
-    white-space:nowrap;
+
+    line-height:1.1;
 }
 
 .hourly{
 
-    text-align:right;
+    margin-top:8px;
 
     font-size:3.8vw;
 
-    line-height:1.4;
-
     color:#aaa;
+
+    line-height:1.45;
 }
 
 .divider{
@@ -168,14 +187,21 @@ body{
 
 <div class="weatherRow">
 
-<div id="weatherNow" class="weatherNow">
-☁️ 佛山 24°
-</div>
+    <div class="weatherTitle">
+        佛山天气
+    </div>
 
-<div id="hourly" class="hourly">
-18时 ☁️24°<br>
-19时 ☁️24°<br>
-20时 🌧️23°
+    <div class="weatherRight">
+
+        <div id="weatherNow" class="weatherNow">
+            ☁️ 24°
+        </div>
+
+        <div id="hourly" class="hourly">
+        </div>
+
+    </div>
+
 </div>
 
 </div>
@@ -323,22 +349,26 @@ async function loadWeather(){
             const h=
             (currentHour+i)%24;
 
-            hourlyHtml+=
+hourlyHtml +=
 
-            String(h).padStart(2,'0')
-            + "时 "
+String(h).padStart(2,'0')
++ "时<br>"
 
-            + weatherIcon(
-              d.hourly.weathercode[index+i]
-              )
++ weatherIcon(
+    d.hourly.weathercode[index+i]
+  )
 
-            + " "
++ " "
 
-            + Math.round(
-              d.hourly.temperature_2m[index+i]
-              )
++ Math.round(
+    d.hourly.temperature_2m[index+i]
+  )
 
-            + "°";
++ "°";
+
+if(i<3){
+    hourlyHtml += "<br><br>";
+}
 
             if(i<3)
                 hourlyHtml+="<br>";
