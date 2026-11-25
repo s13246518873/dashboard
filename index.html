@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+
 <meta charset="utf-8">
 <meta name="viewport"
-content="width=device-width,height=device-height,initial-scale=1,viewport-fit=cover">
+content="width=device-width,height=device-height,initial-scale=1,viewport-fit=cover,user-scalable=no">
 
-<title>Bedside Clock</title>
+<title>Foshan Clock</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
 
 :root{
-    --main:#bdbdbd;
-    --sub:#8a8a8a;
-    --line:#2a2a2a;
+    --main:#d0d0d0;
+    --sub:#929292;
+    --line:#222;
 }
 
 html,body{
@@ -22,16 +25,15 @@ html,body{
     overflow:hidden;
     background:#000;
     color:var(--main);
-
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        "Helvetica Neue",
-        sans-serif;
 }
 
 body{
+    font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
     display:flex;
     justify-content:center;
     align-items:center;
@@ -40,145 +42,185 @@ body{
 #screen{
     width:100vw;
     height:100vh;
-    transition:transform 1s linear;
 
     display:flex;
     justify-content:center;
     align-items:center;
+
+    transition:transform 1s linear;
 }
 
-.container{
+.main{
     width:100%;
     text-align:center;
 }
 
 .time{
+    font-size:30vw;
+    font-weight:800;
+    line-height:1;
+    color:#ddd;
 
-    font-size:34vw;
-    font-weight:700;
-    line-height:0.9;
-
-    letter-spacing:-8px;
-
-    margin-bottom:10px;
+    letter-spacing:-5px;
 }
 
-.blink{
+.colon{
     animation:blink 1s infinite;
 }
 
 @keyframes blink{
 
-    0%{opacity:1;}
+    0%{
+        opacity:1;
+    }
 
-    50%{opacity:.2;}
+    50%{
+        opacity:.25;
+    }
 
-    100%{opacity:1;}
+    100%{
+        opacity:1;
+    }
 }
 
 .weekday{
 
-    font-size:7vw;
-    font-weight:600;
+    margin-top:20px;
+
+    font-size:6vw;
+    font-weight:700;
+
     color:var(--sub);
 }
 
 .date{
 
-    margin-top:10px;
+    margin-top:8px;
 
-    font-size:5vw;
+    font-size:4.8vw;
 
     color:var(--sub);
 }
 
 .lunar{
 
-    margin-top:14px;
+    margin-top:20px;
 
     font-size:5vw;
 
-    color:var(--sub);
+    color:#b0b0b0;
+}
+
+.gz{
+
+    margin-top:8px;
+
+    line-height:1.6;
+
+    font-size:4.2vw;
+
+    color:#888;
 }
 
 .weather{
 
-    margin-top:35px;
+    margin-top:25px;
 
-    font-size:7vw;
+    font-size:8vw;
 
-    font-weight:600;
-
-    color:var(--main);
+    font-weight:700;
 }
 
 .weatherDetail{
 
-    margin-top:8px;
-
     font-size:4.5vw;
-
     color:var(--sub);
 }
 
-.hr{
+.divider{
 
-    width:55%;
-
+    width:65%;
     height:1px;
 
     background:var(--line);
 
-    margin:30px auto;
+    margin:25px auto;
 }
 
-.footer{
+.forecast{
+
+    width:95%;
+
+    margin:auto;
+
+    display:flex;
+
+    justify-content:space-around;
+}
+
+.day{
+
+    width:18%;
+}
+
+.icon{
+
+    font-size:8vw;
+}
+
+.dayname{
+
+    font-size:3.5vw;
+    color:#888;
+
+    margin-top:5px;
+}
+
+.temp{
 
     font-size:4vw;
+    color:#ccc;
 
-    color:#666;
+    margin-top:3px;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div id="screen">
 
-<div class="container">
+<div class="main">
 
-    <div class="time">
-        <span id="hh">17</span>
-        <span class="blink">:</span>
-        <span id="mm">23</span>
-    </div>
+<div class="time">
+<span id="hh">17</span>
+<span class="colon">:</span>
+<span id="mm">34</span>
+</div>
 
-    <div id="weekday" class="weekday">
-        星期三
-    </div>
+<div id="weekday" class="weekday"></div>
 
-    <div id="date" class="date">
-        2026-11-25
-    </div>
+<div id="date" class="date"></div>
 
-    <div id="lunar" class="lunar">
-        农历加载中...
-    </div>
+<div id="lunar" class="lunar">
+农历加载中...
+</div>
 
-    <div class="weather" id="weather">
-        佛山南海
-    </div>
+<div id="gz" class="gz"></div>
 
-    <div class="weatherDetail" id="weatherDetail">
-        获取天气中...
-    </div>
+<div id="weather" class="weather">
+佛山
+</div>
 
-    <div class="hr"></div>
+<div id="weatherDetail" class="weatherDetail">
+加载天气...
+</div>
 
-    <div class="footer" id="aqi">
-        AQI --
-    </div>
+<div class="divider"></div>
+
+<div id="forecast" class="forecast"></div>
 
 </div>
 
@@ -188,26 +230,59 @@ body{
 
 <script>
 
+function weatherIcon(code){
+
+    if(code===0) return "☀️";
+
+    if([1,2].includes(code))
+        return "🌤️";
+
+    if(code===3)
+        return "☁️";
+
+    if(
+        [45,48].includes(code)
+    )
+        return "🌫️";
+
+    if(
+        [51,53,55,56,57,
+         61,63,65,66,67,
+         80,81,82].includes(code)
+    )
+        return "🌧️";
+
+    if(
+        [71,73,75,77,
+         85,86].includes(code)
+    )
+        return "❄️";
+
+    if(
+        [95,96,99].includes(code)
+    )
+        return "⛈️";
+
+    return "☁️";
+}
+
 function updateClock(){
 
     const now = new Date();
 
-    const hh =
-        String(now.getHours()).padStart(2,'0');
+    document.getElementById("hh").innerText =
+        String(now.getHours()).padStart(2,"0");
 
-    const mm =
-        String(now.getMinutes()).padStart(2,'0');
+    document.getElementById("mm").innerText =
+        String(now.getMinutes()).padStart(2,"0");
 
-    document.getElementById("hh").innerText=hh;
-    document.getElementById("mm").innerText=mm;
-
-    document.getElementById("weekday").innerText=
+    document.getElementById("weekday").innerText =
         now.toLocaleDateString(
             "zh-CN",
             {weekday:"long"}
         );
 
-    document.getElementById("date").innerText=
+    document.getElementById("date").innerText =
         now.toLocaleDateString(
             "zh-CN",
             {
@@ -217,35 +292,104 @@ function updateClock(){
             }
         );
 
-    updateLunar();
-
     updateBrightness();
+    updateLunar();
 }
 
 function updateLunar(){
 
     try{
 
-        const now=new Date();
+        const now = new Date();
 
-        const lunar=
-            solarlunar.solar2lunar(
-                now.getFullYear(),
-                now.getMonth()+1,
-                now.getDate()
-            );
+        const lunar =
+        solarlunar.solar2lunar(
+            now.getFullYear(),
+            now.getMonth()+1,
+            now.getDate()
+        );
 
-        document.getElementById("lunar").innerText=
-            "农历 " +
-            lunar.monthCn +
-            lunar.dayCn;
+        document.getElementById("lunar").innerHTML=
+            `农历 ${lunar.monthCn}${lunar.dayCn}`;
+
+        document.getElementById("gz").innerHTML=
+            `${lunar.gzYear}年<br>
+             ${lunar.gzMonth}月<br>
+             ${lunar.gzDay}日`;
 
     }catch(e){}
 }
 
+async function loadWeather(){
+
+    try{
+
+        const url=
+        "https://api.open-meteo.com/v1/forecast?latitude=23.03&longitude=113.15&daily=weathercode,temperature_2m_max&current_weather=true&timezone=Asia%2FShanghai";
+
+        const r=await fetch(url);
+
+        const d=await r.json();
+
+        const current=d.current_weather;
+
+        document.getElementById("weather")
+        .innerHTML=
+        `${weatherIcon(current.weathercode)}
+         ${Math.round(current.temperature)}°`;
+
+        document.getElementById("weatherDetail")
+        .innerHTML=
+        `佛山南海`;
+
+        const days=d.daily.time;
+
+        let html="";
+
+        for(let i=0;i<5;i++){
+
+            const date=
+                new Date(days[i]);
+
+            html+=`
+            <div class="day">
+
+                <div class="icon">
+                ${weatherIcon(
+                    d.daily.weathercode[i]
+                )}
+                </div>
+
+                <div class="dayname">
+                ${["日","一","二","三","四","五","六"]
+                [date.getDay()]}
+                </div>
+
+                <div class="temp">
+                ${Math.round(
+                d.daily.temperature_2m_max[i]
+                )}°
+                </div>
+
+            </div>
+            `;
+        }
+
+        document
+        .getElementById("forecast")
+        .innerHTML=html;
+
+    }catch(e){
+
+        document
+        .getElementById("weatherDetail")
+        .innerText="天气加载失败";
+    }
+}
+
 function updateBrightness(){
 
-    const h=new Date().getHours();
+    let h=new Date().getHours();
 
     if(h>=22 || h<9){
 
@@ -259,61 +403,27 @@ function updateBrightness(){
     }
 }
 
-async function getWeather(){
+function antiBurn(){
 
-    try{
-
-        const r=
-            await fetch(
-                "https://wttr.in/Foshan?format=j1"
-            );
-
-        const d=
-            await r.json();
-
-        const c=
-            d.current_condition[0];
-
-        document.getElementById("weather")
-            .innerText=
-            `佛山南海 ${c.temp_C}°`;
-
-        document.getElementById("weatherDetail")
-            .innerText=
-            `${c.lang_zh?.[0]?.value || c.weatherDesc[0].value}
-             湿度${c.humidity}%`;
-
-    }catch(e){
-
-        document.getElementById("weatherDetail")
-            .innerText="天气获取失败";
-    }
-}
-
-function antiBurnin(){
-
-    const points=[
+    const pos=[
         [0,0],
-        [1,0],
-        [1,1],
-        [0,1],
-        [-1,1],
-        [-1,0],
-        [-1,-1],
-        [0,-1],
-        [1,-1]
+        [2,0],
+        [2,2],
+        [0,2],
+        [-2,2],
+        [-2,0],
+        [-2,-2],
+        [0,-2],
+        [2,-2]
     ];
 
-    const index=
-        Math.floor(Date.now()/1200000)
-        % points.length;
-
-    const p=
-        points[index];
+    const idx=
+    Math.floor(Date.now()/1200000)
+    % pos.length;
 
     document.getElementById("screen")
-        .style.transform=
-        `translate(${p[0]}px,${p[1]}px)`;
+    .style.transform=
+    `translate(${pos[idx][0]}px,${pos[idx][1]}px)`;
 }
 
 async function keepAwake(){
@@ -322,7 +432,9 @@ async function keepAwake(){
 
         if("wakeLock" in navigator){
 
-            await navigator.wakeLock.request("screen");
+            await navigator
+            .wakeLock
+            .request("screen");
         }
 
     }catch(e){}
@@ -338,13 +450,13 @@ document.addEventListener(
 );
 
 updateClock();
-getWeather();
-antiBurnin();
+loadWeather();
+antiBurn();
 keepAwake();
 
 setInterval(updateClock,1000);
-setInterval(getWeather,1800000);
-setInterval(antiBurnin,1200000);
+setInterval(loadWeather,1800000);
+setInterval(antiBurn,1200000);
 
 </script>
 
