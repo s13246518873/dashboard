@@ -49,17 +49,19 @@ body{
     justify-content:center;
     align-items:center;
     text-align:center;
+    padding:10px;
+    box-sizing:border-box;
 }
 
 .topline{
     font-size:5vw;
     font-weight:600;
     color:var(--sub);
-    margin-bottom:18px;
+    margin-bottom:15px;
 }
 
 .time{
-    font-size:35vw;
+    font-size:38vw;
     font-weight:800;
     line-height:0.9;
     letter-spacing:-6px;
@@ -77,16 +79,16 @@ body{
 }
 
 .lunar{
-    margin-top:20px;
+    margin-top:12px;
     font-size:5vw;
     color:#b5b5b5;
 }
 
 .weatherRow{
 
-    width:90%;
+    width:92%;
 
-    margin-top:24px;
+    margin-top:18px;
 
     display:flex;
 
@@ -99,16 +101,20 @@ body{
 
     font-size:5vw;
 
-    color:#999;
-
     font-weight:600;
+
+    color:#999;
 
     padding-top:8px;
 }
 
 .weatherRight{
 
-    text-align:right;
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-end;
 }
 
 .weatherNow{
@@ -117,35 +123,63 @@ body{
 
     font-weight:700;
 
-    line-height:1.1;
+    line-height:1;
 }
 
 .hourly{
 
-    margin-top:8px;
+    margin-top:12px;
 
-    font-size:3.8vw;
+    display:flex;
+
+    gap:16px;
 
     color:#aaa;
+}
 
-    line-height:1.45;
+.hourBlock{
+
+    text-align:center;
+}
+
+.hourIcon{
+
+    font-size:5vw;
+}
+
+.hourTemp{
+
+    font-size:3.8vw;
+}
+
+.hourTime{
+
+    font-size:3vw;
+    color:#777;
 }
 
 .divider{
+
     width:70%;
     height:1px;
-    background:var(--line);
-    margin:24px 0;
+    background:#222;
+    margin:20px 0;
 }
 
 .forecast{
-    width:96%;
+
+    width:98%;
+
     display:flex;
+
     justify-content:space-around;
 }
 
 .day{
+
     width:18%;
+
+    text-align:center;
 }
 
 .icon{
@@ -153,7 +187,7 @@ body{
 }
 
 .dayname{
-    margin-top:6px;
+    margin-top:5px;
     font-size:3.8vw;
     color:#999;
 }
@@ -178,7 +212,7 @@ body{
 </div>
 
 <div class="time">
-<span id="hh">17</span><span class="colon">:</span><span id="mm">49</span>
+<span id="hh">17</span><span class="colon">:</span><span id="mm">58</span>
 </div>
 
 <div id="lunar" class="lunar">
@@ -194,15 +228,13 @@ body{
     <div class="weatherRight">
 
         <div id="weatherNow" class="weatherNow">
-            ☁️ 24°
+            ☁️24°
         </div>
 
         <div id="hourly" class="hourly">
         </div>
 
     </div>
-
-</div>
 
 </div>
 
@@ -222,31 +254,23 @@ function weatherIcon(code){
 
     if(code===0) return "☀️";
 
-    if([1,2].includes(code))
-        return "🌤️";
+    if([1,2].includes(code)) return "🌤️";
 
-    if(code===3)
-        return "☁️";
+    if(code===3) return "☁️";
 
-    if([45,48].includes(code))
-        return "🌫️";
+    if([45,48].includes(code)) return "🌫️";
 
     if([
         51,53,55,56,57,
         61,63,65,66,67,
         80,81,82
-    ].includes(code))
-        return "🌧️";
+    ].includes(code)) return "🌧️";
 
-    if([
-        95,96,99
-    ].includes(code))
+    if([95,96,99].includes(code))
         return "⛈️";
 
     return "☁️";
 }
-
-
 
 function updateClock(){
 
@@ -259,7 +283,6 @@ function updateClock(){
         String(now.getMinutes()).padStart(2,'0');
 
     document.getElementById("topline").innerText=
-
         now.toLocaleDateString(
             "zh-CN",
             {
@@ -268,7 +291,7 @@ function updateClock(){
                 day:'numeric'
             }
         )
-        +" "
+        + " "
         +
         now.toLocaleDateString(
             "zh-CN",
@@ -280,8 +303,6 @@ function updateClock(){
     updateLunar();
     updateBrightness();
 }
-
-
 
 function updateLunar(){
 
@@ -304,8 +325,6 @@ function updateLunar(){
     }catch(e){}
 }
 
-
-
 async function loadWeather(){
 
     try{
@@ -320,109 +339,89 @@ async function loadWeather(){
         const current=d.current_weather;
 
         document.getElementById("weatherNow").innerHTML=
-
             weatherIcon(current.weathercode)
-            +
-            " 佛山 "
-            +
-            Math.round(current.temperature)
-            +
-            "°";
+            + " "
+            + Math.round(current.temperature)
+            + "°";
 
+        const currentHour =
+            new Date().getHours();
 
-
-        const currentHour=
-        new Date().getHours();
-
-        const index=
-        d.hourly.time.findIndex(
-            x=>x.includes(
-                String(currentHour).padStart(2,'0')
-                +":00"
-            )
-        );
+        const index =
+            d.hourly.time.findIndex(
+                t => t.includes(
+                    String(currentHour).padStart(2,"0")+":00"
+                )
+            );
 
         let hourlyHtml="";
 
         for(let i=1;i<=3;i++){
 
-            const h=
-            (currentHour+i)%24;
+            const h=(currentHour+i)%24;
 
-hourlyHtml +=
+            hourlyHtml += `
+                <div class="hourBlock">
+                    <div class="hourIcon">
+                    ${weatherIcon(
+                        d.hourly.weathercode[index+i]
+                    )}
+                    </div>
 
-String(h).padStart(2,'0')
-+ "时<br>"
+                    <div class="hourTemp">
+                    ${Math.round(
+                        d.hourly.temperature_2m[index+i]
+                    )}°
+                    </div>
 
-+ weatherIcon(
-    d.hourly.weathercode[index+i]
-  )
-
-+ " "
-
-+ Math.round(
-    d.hourly.temperature_2m[index+i]
-  )
-
-+ "°";
-
-if(i<3){
-    hourlyHtml += "<br><br>";
-}
-
-            if(i<3)
-                hourlyHtml+="<br>";
+                    <div class="hourTime">
+                    ${String(h).padStart(2,'0')}时
+                    </div>
+                </div>
+            `;
         }
 
-        document.getElementById("hourly")
-        .innerHTML=
-        hourlyHtml;
-
-
+        document.getElementById("hourly").innerHTML =
+            hourlyHtml;
 
         let html="";
 
         for(let i=0;i<5;i++){
 
             const date=
-            new Date(d.daily.time[i]);
+                new Date(d.daily.time[i]);
 
-            html+=`
+            html += `
+                <div class="day">
 
-            <div class="day">
+                    <div class="icon">
+                    ${weatherIcon(
+                        d.daily.weathercode[i]
+                    )}
+                    </div>
 
-            <div class="icon">
-            ${weatherIcon(
-                d.daily.weathercode[i]
-            )}
-            </div>
+                    <div class="dayname">
+                    ${["日","一","二","三","四","五","六"]
+                    [date.getDay()]}
+                    </div>
 
-            <div class="dayname">
-            ${["日","一","二","三","四","五","六"][date.getDay()]}
-            </div>
+                    <div class="temp">
+                    ${Math.round(
+                        d.daily.temperature_2m_max[i]
+                    )}°
+                    </div>
 
-            <div class="temp">
-            ${Math.round(
-             d.daily.temperature_2m_max[i]
-            )}°
-            </div>
-
-            </div>
-
+                </div>
             `;
         }
 
         document.getElementById("forecast")
-        .innerHTML=
-        html;
+            .innerHTML = html;
 
     }catch(e){
-
         console.log(e);
     }
 }
-
-
 
 function updateBrightness(){
 
@@ -431,16 +430,14 @@ function updateBrightness(){
     if(h>=22 || h<9){
 
         document.body.style.filter=
-        "brightness(20%)";
+            "brightness(20%)";
 
     }else{
 
         document.body.style.filter=
-        "brightness(60%)";
+            "brightness(60%)";
     }
 }
-
-
 
 function antiBurn(){
 
@@ -456,18 +453,14 @@ function antiBurn(){
         [2,-2]
     ];
 
-    const i=
-    Math.floor(Date.now()/1200000)
-    %
-    pos.length;
+    const idx=
+        Math.floor(Date.now()/1200000)
+        % pos.length;
 
     document.getElementById("screen")
-    .style.transform=
-    `translate(${pos[i][0]}px,${pos[i][1]}px)`;
-
+        .style.transform=
+        `translate(${pos[idx][0]}px,${pos[idx][1]}px)`;
 }
-
-
 
 async function keepAwake(){
 
@@ -475,25 +468,20 @@ async function keepAwake(){
 
         if("wakeLock" in navigator){
 
-            await navigator
-            .wakeLock
-            .request("screen");
+            await navigator.wakeLock.request("screen");
         }
 
     }catch(e){}
 }
 
-
-
 document.addEventListener(
 "visibilitychange",
 ()=>{
-    if(document.visibilityState==="visible")
+    if(document.visibilityState==="visible"){
         keepAwake();
+    }
 }
 );
-
-
 
 updateClock();
 loadWeather();
