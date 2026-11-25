@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,user-scalable=no">
 
 <title>Clock Dashboard</title>
-
 <style>
 html,body{
     margin:0;
@@ -15,9 +14,10 @@ html,body{
     background:#000;
     color:#888;
     font-family:
-    "SF Pro Display",
-    "Microsoft YaHei",
-    sans-serif;
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        sans-serif;
 }
 
 body{
@@ -27,86 +27,83 @@ body{
 }
 
 #screen{
-    width:100vw;
-    height:100vh;
+    width:100%;
+    height:100%;
     display:flex;
     justify-content:center;
     align-items:center;
-
-    transition:transform 1s;
 }
 
 .container{
-    width:96%;
-    height:92%;
-
-    display:grid;
-    grid-template-columns:1fr 2fr 1fr;
-    grid-template-rows:1fr auto 1fr;
-
-    gap:20px;
-}
-
-.panel{
-    border:1px solid #222;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-}
-
-.label{
-    font-size:3vh;
-    color:#666;
-    margin-bottom:10px;
-}
-
-.big{
-    font-size:18vh;
-    line-height:1;
-    font-weight:300;
-}
-
-.clock{
-    grid-column:2;
-    grid-row:1 / span 3;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
+    text-align:center;
+    width:100%;
 }
 
 .time{
-    font-size:26vh;
-    line-height:1;
+    font-size:26vw;
     font-weight:200;
+    line-height:1;
+    color:#999;
+    margin-bottom:35px;
 }
 
-.seconds{
-    font-size:6vh;
+.weekday{
+    font-size:6vw;
+    color:#777;
+    margin-bottom:10px;
+}
+
+.date{
+    font-size:5vw;
     color:#666;
+    margin-bottom:20px;
 }
 
-.info{
-    font-size:4vh;
-    margin-top:15px;
-    text-align:center;
+.lunar{
+    font-size:5vw;
+    color:#666;
+    margin-bottom:35px;
 }
 
 .weather{
-    font-size:6vh;
+    font-size:6vw;
+    color:#888;
+    margin-bottom:10px;
 }
 
 .temp{
-    font-size:10vh;
+    font-size:10vw;
+    color:#999;
+    margin-bottom:30px;
 }
 
-@media (orientation:portrait){
-    body{
-        transform:rotate(90deg);
-        transform-origin:center center;
-    }
+.line{
+    width:60%;
+    height:1px;
+    background:#333;
+    margin:0 auto 30px auto;
+}
+
+.offsets{
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    color:#666;
+}
+
+.offsetBlock{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.offsetLabel{
+    font-size:3vw;
+    margin-bottom:10px;
+}
+
+.offsetTime{
+    font-size:6vw;
 }
 </style>
 </head>
@@ -115,226 +112,110 @@ body{
 
 <div id="screen">
 
-<div class="container">
-
-    <div class="panel">
-        <div class="label">前20分钟</div>
-        <div id="prevHour" class="big">10</div>
-        <div id="prevMin" class="big">01</div>
-    </div>
-
-    <div class="clock">
+    <div class="container">
 
         <div id="time" class="time">
-            10:01
+            17:14
         </div>
 
-        <div id="seconds" class="seconds">
-            00
+        <div id="weekday" class="weekday">
+            星期三
         </div>
 
-        <div id="date" class="info"></div>
+        <div id="date" class="date">
+            2026-11-25
+        </div>
 
-        <div id="lunar" class="info"></div>
+        <div id="lunar" class="lunar">
+            农历 十月十六
+        </div>
 
-        <div id="huangli" class="info"></div>
+        <div id="weather" class="weather">
+            佛山南海 多云
+        </div>
 
-    </div>
+        <div id="temp" class="temp">
+            23℃
+        </div>
 
-    <div class="panel">
-        <div class="label">后20分钟</div>
-        <div id="nextHour" class="big">01</div>
-        <div id="nextMin" class="big">10</div>
-    </div>
+        <div class="line"></div>
 
-    <div class="panel">
-        <div class="label">天气</div>
-        <div id="weather" class="weather">佛山</div>
-        <div id="temp" class="temp">--°</div>
-    </div>
+        <div class="offsets">
 
-    <div class="panel">
-        <div class="label">湿度</div>
-        <div id="humidity" class="big">--</div>
-    </div>
+            <div class="offsetBlock">
+                <div class="offsetLabel">-20分钟</div>
+                <div id="prevTime" class="offsetTime">
+                    16:54
+                </div>
+            </div>
 
-    <div class="panel">
-        <div class="label">风速</div>
-        <div id="wind" class="big">--</div>
+            <div class="offsetBlock">
+                <div class="offsetLabel">+20分钟</div>
+                <div id="nextTime" class="offsetTime">
+                    17:34
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
 </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/solarlunar@2.0.7/lib/solarlunar.min.js"></script>
-
 <script>
+    function updateClock(){
 
-const WEATHER_API_KEY = "YOUR_OPENWEATHER_KEY";
+    const now = new Date();
 
-async function getWeather(){
-
-    if(WEATHER_API_KEY==="YOUR_OPENWEATHER_KEY")
-        return;
-
-    try{
-
-        const url=
-        `https://api.openweathermap.org/data/2.5/weather?q=Foshan,cn&units=metric&lang=zh_cn&appid=${WEATHER_API_KEY}`;
-
-        const r=await fetch(url);
-        const d=await r.json();
-
-        document.getElementById("weather").innerText=
-            d.weather[0].description;
-
-        document.getElementById("temp").innerText=
-            Math.round(d.main.temp)+"°";
-
-        document.getElementById("humidity").innerText=
-            d.main.humidity+"%";
-
-        document.getElementById("wind").innerText=
-            Math.round(d.wind.speed);
-
-    }catch(e){
-        console.log(e);
-    }
-}
-
-function updateClock(){
-
-    const now=new Date();
-
-    const h=String(now.getHours()).padStart(2,"0");
-    const m=String(now.getMinutes()).padStart(2,"0");
-    const s=String(now.getSeconds()).padStart(2,"0");
-
-    document.getElementById("time").innerText=
-        `${h}:${m}`;
-
-    document.getElementById("seconds").innerText=s;
-
-    document.getElementById("date").innerText=
-        now.toLocaleDateString(
-            "zh-CN",
+    document.getElementById('time').innerHTML =
+        now.toLocaleTimeString(
+            'zh-CN',
             {
-              year:"numeric",
-              month:"long",
-              day:"numeric",
-              weekday:"long"
+                hour:'2-digit',
+                minute:'2-digit',
+                hour12:false
             }
         );
 
-    let prev=new Date(now.getTime()-20*60000);
-    let next=new Date(now.getTime()+20*60000);
-
-    document.getElementById("prevHour").innerText=
-        String(prev.getHours()).padStart(2,"0");
-
-    document.getElementById("prevMin").innerText=
-        String(prev.getMinutes()).padStart(2,"0");
-
-    document.getElementById("nextHour").innerText=
-        String(next.getHours()).padStart(2,"0");
-
-    document.getElementById("nextMin").innerText=
-        String(next.getMinutes()).padStart(2,"0");
-
-    updateBrightness();
-
-    updateLunar(now);
-}
-
-function updateLunar(date){
-
-    try{
-
-        const lunar=
-        solarlunar.solar2lunar(
-            date.getFullYear(),
-            date.getMonth()+1,
-            date.getDate()
+    document.getElementById('weekday').innerHTML =
+        now.toLocaleDateString(
+            'zh-CN',
+            {
+                weekday:'long'
+            }
         );
 
-        document.getElementById("lunar").innerHTML=
-        `农历 ${lunar.monthCn}${lunar.dayCn}`;
+    document.getElementById('date').innerHTML =
+        now.toLocaleDateString('zh-CN');
 
-        document.getElementById("huangli").innerHTML=
-        `宜：${lunar.auspiciousDay || "平"}　
-         忌：${lunar.inauspiciousDay || "无"}`;
+    const prev =
+        new Date(now.getTime()-20*60000);
 
-    }catch(e){}
+    const next =
+        new Date(now.getTime()+20*60000);
+
+    document.getElementById('prevTime').innerHTML =
+        prev.toLocaleTimeString(
+            'zh-CN',
+            {
+                hour:'2-digit',
+                minute:'2-digit',
+                hour12:false
+            }
+        );
+
+    document.getElementById('nextTime').innerHTML =
+        next.toLocaleTimeString(
+            'zh-CN',
+            {
+                hour:'2-digit',
+                minute:'2-digit',
+                hour12:false
+            }
+        );
 }
-
-function updateBrightness(){
-
-    let hour=new Date().getHours();
-
-    if(hour>=22 || hour<9){
-
-        document.body.style.filter=
-            "brightness(10%)";
-
-    }else{
-
-        document.body.style.filter=
-            "brightness(50%)";
-    }
-}
-
-function antiBurn(){
-
-    const x=
-        Math.floor(Math.random()*3)-1;
-
-    const y=
-        Math.floor(Math.random()*3)-1;
-
-    document
-    .getElementById("screen")
-    .style.transform=
-        `translate(${x}px,${y}px)`;
-}
-
-setInterval(updateClock,1000);
-
-setInterval(getWeather,1800000);
-
-setInterval(antiBurn,1200000);
 
 updateClock();
-getWeather();
-
-async function keepAwake(){
-
-    try{
-
-        if('wakeLock' in navigator){
-
-            const wakeLock=
-                await navigator.wakeLock
-                .request('screen');
-
-            console.log(wakeLock);
-        }
-
-    }catch(e){}
-}
-
-keepAwake();
-
-document.addEventListener(
-'visibilitychange',
-()=>{
-    if(document.visibilityState==='visible'){
-        keepAwake();
-    }
-}
-);
-
+setInterval(updateClock,1000);
 </script>
-
 </body>
 </html>
