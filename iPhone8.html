@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,user-scalable=no">
+
+<title>Clock Dashboard</title>
+
+<style>
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    color:#888;
+    font-family:
+    "SF Pro Display",
+    "Microsoft YaHei",
+    sans-serif;
+}
+
+body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#screen{
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    transition:transform 1s;
+}
+
+.container{
+    width:96%;
+    height:92%;
+
+    display:grid;
+    grid-template-columns:1fr 2fr 1fr;
+    grid-template-rows:1fr auto 1fr;
+
+    gap:20px;
+}
+
+.panel{
+    border:1px solid #222;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.label{
+    font-size:3vh;
+    color:#666;
+    margin-bottom:10px;
+}
+
+.big{
+    font-size:18vh;
+    line-height:1;
+    font-weight:300;
+}
+
+.clock{
+    grid-column:2;
+    grid-row:1 / span 3;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+.time{
+    font-size:26vh;
+    line-height:1;
+    font-weight:200;
+}
+
+.seconds{
+    font-size:6vh;
+    color:#666;
+}
+
+.info{
+    font-size:4vh;
+    margin-top:15px;
+    text-align:center;
+}
+
+.weather{
+    font-size:6vh;
+}
+
+.temp{
+    font-size:10vh;
+}
+
+@media (orientation:portrait){
+    body{
+        transform:rotate(90deg);
+        transform-origin:center center;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="screen">
+
+<div class="container">
+
+    <div class="panel">
+        <div class="label">前20分钟</div>
+        <div id="prevHour" class="big">10</div>
+        <div id="prevMin" class="big">01</div>
+    </div>
+
+    <div class="clock">
+
+        <div id="time" class="time">
+            10:01
+        </div>
+
+        <div id="seconds" class="seconds">
+            00
+        </div>
+
+        <div id="date" class="info"></div>
+
+        <div id="lunar" class="info"></div>
+
+        <div id="huangli" class="info"></div>
+
+    </div>
+
+    <div class="panel">
+        <div class="label">后20分钟</div>
+        <div id="nextHour" class="big">01</div>
+        <div id="nextMin" class="big">10</div>
+    </div>
+
+    <div class="panel">
+        <div class="label">天气</div>
+        <div id="weather" class="weather">佛山</div>
+        <div id="temp" class="temp">--°</div>
+    </div>
+
+    <div class="panel">
+        <div class="label">湿度</div>
+        <div id="humidity" class="big">--</div>
+    </div>
+
+    <div class="panel">
+        <div class="label">风速</div>
+        <div id="wind" class="big">--</div>
+    </div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/solarlunar@2.0.7/lib/solarlunar.min.js"></script>
+
+<script>
+
+const WEATHER_API_KEY = "YOUR_OPENWEATHER_KEY";
+
+async function getWeather(){
+
+    if(WEATHER_API_KEY==="YOUR_OPENWEATHER_KEY")
+        return;
+
+    try{
+
+        const url=
+        `https://api.openweathermap.org/data/2.5/weather?q=Foshan,cn&units=metric&lang=zh_cn&appid=${WEATHER_API_KEY}`;
+
+        const r=await fetch(url);
+        const d=await r.json();
+
+        document.getElementById("weather").innerText=
+            d.weather[0].description;
+
+        document.getElementById("temp").innerText=
+            Math.round(d.main.temp)+"°";
+
+        document.getElementById("humidity").innerText=
+            d.main.humidity+"%";
+
+        document.getElementById("wind").innerText=
+            Math.round(d.wind.speed);
+
+    }catch(e){
+        console.log(e);
+    }
+}
+
+function updateClock(){
+
+    const now=new Date();
+
+    const h=String(now.getHours()).padStart(2,"0");
+    const m=String(now.getMinutes()).padStart(2,"0");
+    const s=String(now.getSeconds()).padStart(2,"0");
+
+    document.getElementById("time").innerText=
+        `${h}:${m}`;
+
+    document.getElementById("seconds").innerText=s;
+
+    document.getElementById("date").innerText=
+        now.toLocaleDateString(
+            "zh-CN",
+            {
+              year:"numeric",
+              month:"long",
+              day:"numeric",
+              weekday:"long"
+            }
+        );
+
+    let prev=new Date(now.getTime()-20*60000);
+    let next=new Date(now.getTime()+20*60000);
+
+    document.getElementById("prevHour").innerText=
+        String(prev.getHours()).padStart(2,"0");
+
+    document.getElementById("prevMin").innerText=
+        String(prev.getMinutes()).padStart(2,"0");
+
+    document.getElementById("nextHour").innerText=
+        String(next.getHours()).padStart(2,"0");
+
+    document.getElementById("nextMin").innerText=
+        String(next.getMinutes()).padStart(2,"0");
+
+    updateBrightness();
+
+    updateLunar(now);
+}
+
+function updateLunar(date){
+
+    try{
+
+        const lunar=
+        solarlunar.solar2lunar(
+            date.getFullYear(),
+            date.getMonth()+1,
+            date.getDate()
+        );
+
+        document.getElementById("lunar").innerHTML=
+        `农历 ${lunar.monthCn}${lunar.dayCn}`;
+
+        document.getElementById("huangli").innerHTML=
+        `宜：${lunar.auspiciousDay || "平"}　
+         忌：${lunar.inauspiciousDay || "无"}`;
+
+    }catch(e){}
+}
+
+function updateBrightness(){
+
+    let hour=new Date().getHours();
+
+    if(hour>=22 || hour<9){
+
+        document.body.style.filter=
+            "brightness(10%)";
+
+    }else{
+
+        document.body.style.filter=
+            "brightness(50%)";
+    }
+}
+
+function antiBurn(){
+
+    const x=
+        Math.floor(Math.random()*3)-1;
+
+    const y=
+        Math.floor(Math.random()*3)-1;
+
+    document
+    .getElementById("screen")
+    .style.transform=
+        `translate(${x}px,${y}px)`;
+}
+
+setInterval(updateClock,1000);
+
+setInterval(getWeather,1800000);
+
+setInterval(antiBurn,1200000);
+
+updateClock();
+getWeather();
+
+async function keepAwake(){
+
+    try{
+
+        if('wakeLock' in navigator){
+
+            const wakeLock=
+                await navigator.wakeLock
+                .request('screen');
+
+            console.log(wakeLock);
+        }
+
+    }catch(e){}
+}
+
+keepAwake();
+
+document.addEventListener(
+'visibilitychange',
+()=>{
+    if(document.visibilityState==='visible'){
+        keepAwake();
+    }
+}
+);
+
+</script>
+
+</body>
+</html>
