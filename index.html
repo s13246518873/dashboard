@@ -132,7 +132,6 @@ body{
 
     text-align:center;
 }
-
 .hourly{
     display:flex;
     gap:10px;
@@ -140,26 +139,21 @@ body{
 }
 
 .hourBlock{
-
     text-align:center;
 }
 
 .hourIcon{
-
-    font-size:5vw;
+    font-size:4vw;
 }
 
 .hourTemp{
-
-    font-size:3.8vw;
+    font-size:3vw;
 }
 
 .hourTime{
-
-    font-size:3vw;
+    font-size:2.5vw;
     color:#777;
 }
-
 .divider{
 
     width:70%;
@@ -333,45 +327,35 @@ async function loadWeather(){
 
     try{
 
-async function loadWeather(){
-
-    try{
+        // 默认：佛山南海桂城
+        let city = "佛山";
+        let lat = 23.0289;
+        let lon = 113.1415;
 
         //
         // IP定位
         //
-        let city = "佛山";
-        let lat = 23.0292;
-        let lon = 113.1227;
-
         try{
 
             const geo =
-            await fetch(
-                "https://ipapi.co/json/"
-            );
+                await fetch("https://ipwho.is/");
 
             const location =
-            await geo.json();
+                await geo.json();
 
-            if(location.city){
+            if(location.success !== false){
 
                 city =
-                location.city
-                    .replace("市","");
-
-            }
-
-            if(
-                location.latitude &&
-                location.longitude
-            ){
+                    location.city ||
+                    city;
 
                 lat =
-                location.latitude;
+                    location.latitude ||
+                    lat;
 
                 lon =
-                location.longitude;
+                    location.longitude ||
+                    lon;
             }
 
         }catch(e){
@@ -382,6 +366,25 @@ async function loadWeather(){
         }
 
         //
+        // 城市名称中文化
+        //
+        const cityMap = {
+
+            "Foshan":"佛山",
+            "Guangzhou":"广州",
+            "Shenzhen":"深圳",
+            "Dongguan":"东莞",
+            "Zhuhai":"珠海",
+            "Hong Kong":"香港",
+            "Macao":"澳门",
+            "Macau":"澳门"
+
+        };
+
+        city =
+            cityMap[city] || city;
+
+        //
         // 显示城市
         //
         document
@@ -390,91 +393,88 @@ async function loadWeather(){
             city;
 
         //
-        // 天气
+        // 获取天气
         //
         const url =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai`;
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai`;
 
         const r =
-        await fetch(url);
+            await fetch(url);
 
         const d =
-        await r.json();
+            await r.json();
 
-        const current =
-        d.current_weather;
-
+        //
+        // 当前天气
+        //
         document
             .getElementById("weatherNow")
             .innerHTML =
-            weatherIcon(
-                current.weathercode
-            )
-            + " "
-            + Math.round(
-                current.temperature
-            )
-            + "°";
+                weatherIcon(
+                    d.current_weather.weathercode
+                ) +
+                " " +
+                Math.round(
+                    d.current_weather.temperature
+                ) +
+                "°";
 
         //
-        // 当前小时索引
+        // 当前小时
         //
-        const now =
-        new Date();
-
         const currentHour =
-        now.getHours();
+            new Date().getHours();
 
         let index =
-        d.hourly.time.findIndex(
-            t=>t.includes(
-                String(currentHour)
-                .padStart(2,"0")
-                +":00"
-            )
-        );
+            d.hourly.time.findIndex(
+                t => t.includes(
+                    String(currentHour)
+                    .padStart(2,"0")
+                    + ":00"
+                )
+            );
 
-        if(index<0){
-            index=0;
+        if(index < 0){
+            index = 0;
         }
 
         //
         // 未来7小时
         //
-        let hourlyHtml="";
+        let hourlyHtml = "";
 
         for(let i=1;i<=7;i++){
 
             const arrIndex =
-            Math.min(
-                index+i,
-                d.hourly.temperature_2m.length-1
-            );
+                Math.min(
+                    index+i,
+                    d.hourly.temperature_2m.length-1
+                );
 
             const hour =
-            (currentHour+i)%24;
+                (currentHour+i)%24;
 
-            hourlyHtml+=`
-            <div class="hourBlock">
+            hourlyHtml += `
+                <div class="hourBlock">
 
-                <div class="hourIcon">
-                    ${weatherIcon(
-                        d.hourly.weathercode[arrIndex]
-                    )}
+                    <div class="hourIcon">
+                        ${weatherIcon(
+                            d.hourly.weathercode[arrIndex]
+                        )}
+                    </div>
+
+                    <div class="hourTemp">
+                        ${Math.round(
+                            d.hourly.temperature_2m[arrIndex]
+                        )}°
+                    </div>
+
+                    <div class="hourTime">
+                        ${String(hour)
+                            .padStart(2,"0")}时
+                    </div>
+
                 </div>
-
-                <div class="hourTemp">
-                    ${Math.round(
-                        d.hourly.temperature_2m[arrIndex]
-                    )}°
-                </div>
-
-                <div class="hourTime">
-                    ${String(hour)
-                        .padStart(2,"0")}时
-                </div>
-
-            </div>
             `;
         }
 
@@ -486,45 +486,45 @@ async function loadWeather(){
         //
         // 未来5天
         //
-        let html="";
+        let forecastHtml = "";
 
         for(let i=0;i<5;i++){
 
             const date =
-            new Date(
-                d.daily.time[i]
-            );
+                new Date(
+                    d.daily.time[i]
+                );
 
-            html+=`
-            <div class="day">
+            forecastHtml += `
+                <div class="day">
 
-                <div class="icon">
-                    ${weatherIcon(
-                        d.daily.weathercode[i]
-                    )}
+                    <div class="icon">
+                        ${weatherIcon(
+                            d.daily.weathercode[i]
+                        )}
+                    </div>
+
+                    <div class="dayname">
+                        ${
+                            ["日","一","二","三","四","五","六"]
+                            [date.getDay()]
+                        }
+                    </div>
+
+                    <div class="temp">
+                        ${Math.round(
+                            d.daily.temperature_2m_max[i]
+                        )}°
+                    </div>
+
                 </div>
-
-                <div class="dayname">
-                    ${
-                        ["日","一","二","三","四","五","六"]
-                        [date.getDay()]
-                    }
-                </div>
-
-                <div class="temp">
-                    ${Math.round(
-                        d.daily.temperature_2m_max[i]
-                    )}°
-                </div>
-
-            </div>
             `;
         }
 
         document
             .getElementById("forecast")
             .innerHTML =
-            html;
+            forecastHtml;
 
     }catch(e){
 
@@ -542,20 +542,20 @@ async function loadWeather(){
 
     }
 }
-
 function updateBrightness(){
 
-    const h=new Date().getHours();
-if(h>=22 || h<9){
+    const h = new Date().getHours();
 
-    document.body.style.filter=
-        "brightness(10%)";
+    if(h >= 22 || h < 9){
 
-}else{
+        document.body.style.filter =
+            "brightness(10%)";
 
-    document.body.style.filter=
-        "brightness(50%)";
-}
+    }else{
+
+        document.body.style.filter =
+            "brightness(50%)";
+    }
 }
 
 function antiBurn(){
