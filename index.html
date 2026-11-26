@@ -83,7 +83,6 @@ body{
     font-size:5vw;
     color:#b5b5b5;
 }
-
 .weatherRow{
 
     width:92%;
@@ -97,24 +96,13 @@ body{
     align-items:flex-start;
 }
 
-.weatherTitle{
-
-    font-size:5vw;
-
-    font-weight:600;
-
-    color:#999;
-
-    padding-top:8px;
-}
-
-.weatherRight{
+.weatherCurrent{
 
     display:flex;
 
-    flex-direction:column;
+    align-items:flex-start;
 
-    align-items:flex-end;
+    gap:10px;
 }
 
 .weatherNow{
@@ -126,15 +114,50 @@ body{
     line-height:1;
 }
 
-.hourly{
+.weatherLabel{
 
-    margin-top:12px;
+    font-size:3.5vw;
+
+    color:#888;
+
+    line-height:1.15;
+
+    text-align:center;
+}
+
+.hourly{
 
     display:flex;
 
-    gap:16px;
+    gap:18px;
 
-    color:#aaa;
+    align-items:flex-start;
+}
+
+.hourBlock{
+
+    text-align:center;
+}
+
+.hourIcon{
+
+    font-size:5vw;
+}
+
+.hourTemp{
+
+    font-size:3.8vw;
+
+    color:#ddd;
+}
+
+.hourTime{
+
+    margin-top:3px;
+
+    font-size:3vw;
+
+    color:#777;
 }
 
 .hourBlock{
@@ -218,22 +241,21 @@ body{
 <div id="lunar" class="lunar">
 农历加载中...
 </div>
-
 <div class="weatherRow">
-<!--
-  <div class="weatherTitle">
-        佛山天气
-    </div>
--->
-    <div class="weatherRight">
+
+    <div class="weatherCurrent">
 
         <div id="weatherNow" class="weatherNow">
-            ☁️24°
+            ☁️19°
         </div>
+<!--
+        <div class="weatherLabel">
+            佛<br>山<br>现<br>在
+        </div>-->
 
-        <div id="hourly" class="hourly">
-        </div>
+    </div>
 
+    <div id="hourly" class="hourly">
     </div>
 
 </div>
