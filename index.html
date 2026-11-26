@@ -84,16 +84,12 @@ body{
     color:#b5b5b5;
 }
 .weatherRow{
-
-    width:92%;
-
+    width:95%;
     margin-top:18px;
-
     display:flex;
-
     justify-content:space-between;
-
-    align-items:flex-start;
+    align-items:center;
+    gap:20px;
 }
 
 .weatherCurrent{
@@ -114,6 +110,18 @@ body{
     line-height:1;
 }
 
+.location{
+    margin-top:8px;
+    font-size:2.6vw;
+    color:#777;
+    line-height:1.2;
+    text-align:left;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:20vw;
+}
+
 .weatherLabel{
 
     font-size:3.5vw;
@@ -126,40 +134,16 @@ body{
 }
 
 .hourly{
-
     display:flex;
-
-    gap:18px;
-
+    gap:10px;
     align-items:flex-start;
 }
+
 
 .hourBlock{
 
     text-align:center;
 }
-
-.hourIcon{
-
-    font-size:5vw;
-}
-
-.hourTemp{
-
-    font-size:3.8vw;
-
-    color:#ddd;
-}
-
-.hourTime{
-
-    margin-top:3px;
-
-    font-size:3vw;
-
-    color:#777;
-}
-
 .hourBlock{
 
     text-align:center;
@@ -243,17 +227,21 @@ body{
 </div>
 <div class="weatherRow">
 
-    <div class="weatherCurrent">
+<div class="weatherCurrent">
+
+    <div>
 
         <div id="weatherNow" class="weatherNow">
             ☁️19°
         </div>
-<!--
-        <div class="weatherLabel">
-            佛<br>山<br>现<br>在
-        </div>-->
+
+        <div id="location" class="location">
+            定位中...
+        </div>
 
     </div>
+
+</div>
 
     <div id="hourly" class="hourly">
     </div>
@@ -346,119 +334,239 @@ function updateLunar(){
 
     }catch(e){}
 }
-
 async function loadWeather(){
 
     try{
 
-        const url=
-"https://api.open-meteo.com/v1/forecast?latitude=23.03&longitude=113.15&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai";
+        navigator.geolocation.getCurrentPosition(
 
-        const r=await fetch(url);
+            async(pos)=>{
 
-        const d=await r.json();
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
 
-        const current=d.current_weather;
+                //
+                // 地址
+                //
+                try{
 
-        document.getElementById("weatherNow").innerHTML=
-            weatherIcon(current.weathercode)
-            + " "
-            + Math.round(current.temperature)
-            + "°";
+                    const geo =
+                    await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+                    );
 
-        const currentHour =
-            new Date().getHours();
+                    const addr =
+                    await geo.json();
 
-        const index =
-            d.hourly.time.findIndex(
-                t => t.includes(
-                    String(currentHour).padStart(2,"0")+":00"
-                )
-            );
+                    let city =
+                        addr.address.city ||
+                        addr.address.municipality ||
+                        addr.address.town ||
+                        addr.address.county ||
+                        addr.address.state ||
+                        "";
 
-        let hourlyHtml="";
+                    if(!city){
 
-        for(let i=1;i<=3;i++){
+                        city =
+                            addr.display_name
+                            ?.split(",")[0]
+                            || "";
+                    }
 
-            const h=(currentHour+i)%24;
+                    city =
+                    city
+                        .replace("市","")
+                        .replace("特别行政区","")
+                        .replace("自治州","");
 
-            hourlyHtml += `
-                <div class="hourBlock">
-                    <div class="hourIcon">
-                    ${weatherIcon(
-                        d.hourly.weathercode[index+i]
-                    )}
+                    document
+                        .getElementById("location")
+                        .innerText = city;
+
+                }catch(e){
+
+                    document
+                        .getElementById("location")
+                        .innerText = "";
+                }
+
+                //
+                // 天气
+                //
+                const url =
+                `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai`;
+
+                const r =
+                await fetch(url);
+
+                const d =
+                await r.json();
+
+                const current =
+                d.current_weather;
+
+                document
+                .getElementById("weatherNow")
+                .innerHTML =
+                    weatherIcon(
+                        current.weathercode
+                    )
+                    + " "
+                    + Math.round(
+                        current.temperature
+                    )
+                    + "°";
+
+                //
+                // 当前小时索引
+                //
+                const now =
+                new Date();
+
+                const currentHour =
+                now.getHours();
+
+                let index =
+                d.hourly.time.findIndex(
+                    t=>t.includes(
+                        String(currentHour)
+                        .padStart(2,"0")
+                        +":00"
+                    )
+                );
+
+                if(index < 0){
+                    index = 0;
+                }
+
+                //
+                // 未来7小时
+                //
+                let hourlyHtml = "";
+
+                for(let i=1;i<=7;i++){
+
+                    const hour =
+                    (currentHour+i)%24;
+
+                    const arrIndex =
+                    Math.min(
+                        index+i,
+                        d.hourly.temperature_2m.length-1
+                    );
+
+                    hourlyHtml += `
+                    <div class="hourBlock">
+
+                        <div class="hourIcon">
+                            ${weatherIcon(
+                                d.hourly.weathercode[arrIndex]
+                            )}
+                        </div>
+
+                        <div class="hourTemp">
+                            ${Math.round(
+                                d.hourly.temperature_2m[arrIndex]
+                            )}°
+                        </div>
+
+                        <div class="hourTime">
+                            ${String(hour)
+                                .padStart(2,"0")}时
+                        </div>
+
                     </div>
+                    `;
+                }
 
-                    <div class="hourTemp">
-                    ${Math.round(
-                        d.hourly.temperature_2m[index+i]
-                    )}°
+                document
+                .getElementById("hourly")
+                .innerHTML =
+                hourlyHtml;
+
+                //
+                // 未来5天
+                //
+                let html = "";
+
+                for(let i=0;i<5;i++){
+
+                    const date =
+                    new Date(
+                        d.daily.time[i]
+                    );
+
+                    html += `
+                    <div class="day">
+
+                        <div class="icon">
+                            ${weatherIcon(
+                                d.daily.weathercode[i]
+                            )}
+                        </div>
+
+                        <div class="dayname">
+                            ${
+                                ["日","一","二","三","四","五","六"]
+                                [date.getDay()]
+                            }
+                        </div>
+
+                        <div class="temp">
+                            ${Math.round(
+                                d.daily.temperature_2m_max[i]
+                            )}°
+                        </div>
+
                     </div>
+                    `;
+                }
 
-                    <div class="hourTime">
-                    ${String(h).padStart(2,'0')}时
-                    </div>
-                </div>
-            `;
-        }
+                document
+                    .getElementById("forecast")
+                    .innerHTML =
+                    html;
 
-        document.getElementById("hourly").innerHTML =
-            hourlyHtml;
+            },
 
-        let html="";
+            ()=>{
 
-        for(let i=0;i<5;i++){
+                document
+                    .getElementById("location")
+                    .innerText =
+                    "定位关闭";
 
-            const date=
-                new Date(d.daily.time[i]);
+            },
 
-            html += `
-                <div class="day">
+            {
+                enableHighAccuracy:false,
+                timeout:10000,
+                maximumAge:1800000
+            }
 
-                    <div class="icon">
-                    ${weatherIcon(
-                        d.daily.weathercode[i]
-                    )}
-                    </div>
-
-                    <div class="dayname">
-                    ${["日","一","二","三","四","五","六"]
-                    [date.getDay()]}
-                    </div>
-
-                    <div class="temp">
-                    ${Math.round(
-                        d.daily.temperature_2m_max[i]
-                    )}°
-                    </div>
-
-                </div>
-            `;
-        }
-
-        document.getElementById("forecast")
-            .innerHTML = html;
+        );
 
     }catch(e){
+
         console.log(e);
+
     }
 }
 
 function updateBrightness(){
 
     const h=new Date().getHours();
+if(h>=22 || h<9){
 
-    if(h>=22 || h<9){
+    document.body.style.filter=
+        "brightness(10%)";
 
-        document.body.style.filter=
-            "brightness(20%)";
+}else{
 
-    }else{
-
-        document.body.style.filter=
-            "brightness(60%)";
-    }
+    document.body.style.filter=
+        "brightness(50%)";
+}
 }
 
 function antiBurn(){
