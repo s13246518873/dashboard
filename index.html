@@ -91,22 +91,15 @@ body{
     align-items:center;
     gap:20px;
 }
-
 .weatherCurrent{
-
     display:flex;
-
     align-items:flex-start;
-
     gap:10px;
 }
 
 .weatherNow{
-
     font-size:8vw;
-
     font-weight:700;
-
     line-height:1;
 }
 
@@ -122,16 +115,6 @@ body{
     max-width:20vw;
 }
 
-.weatherLabel{
-
-    font-size:3.5vw;
-
-    color:#888;
-
-    line-height:1.15;
-
-    text-align:center;
-}
 .hourly{
     display:flex;
     gap:10px;
@@ -184,8 +167,10 @@ body{
 
 .dayname{
     margin-top:5px;
-    font-size:3.8vw;
-    color:#999;
+    font-size:3.2vw;
+    color:#888;
+    font-weight:600;
+    letter-spacing:0.5px;
 }
 
 .temp{
@@ -327,18 +312,18 @@ async function loadWeather(){
 
     try{
 
-        // 默认：佛山南海桂城
         let city = "佛山";
         let lat = 23.0289;
         let lon = 113.1415;
 
-        //
-        // IP定位
-        //
         try{
 
-            const geo =
-                await fetch("https://ipwho.is/");
+            const geo = await fetch(
+                "https://ipwho.is/",
+                {
+                    cache:"no-store"
+                }
+            );
 
             const location =
                 await geo.json();
@@ -347,7 +332,7 @@ async function loadWeather(){
 
                 city =
                     location.city ||
-                    city;
+                    "佛山";
 
                 lat =
                     location.latitude ||
@@ -365,36 +350,11 @@ async function loadWeather(){
             );
         }
 
-        //
-        // 城市名称中文化
-        //
-        const cityMap = {
-
-            "Foshan":"佛山",
-            "Guangzhou":"广州",
-            "Shenzhen":"深圳",
-            "Dongguan":"东莞",
-            "Zhuhai":"珠海",
-            "Hong Kong":"香港",
-            "Macao":"澳门",
-            "Macau":"澳门"
-
-        };
-
-        city =
-            cityMap[city] || city;
-
-        //
-        // 显示城市
-        //
         document
             .getElementById("location")
             .innerText =
             city;
 
-        //
-        // 获取天气
-        //
         const url =
             `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai`;
 
@@ -404,9 +364,6 @@ async function loadWeather(){
         const d =
             await r.json();
 
-        //
-        // 当前天气
-        //
         document
             .getElementById("weatherNow")
             .innerHTML =
@@ -419,9 +376,6 @@ async function loadWeather(){
                 ) +
                 "°";
 
-        //
-        // 当前小时
-        //
         const currentHour =
             new Date().getHours();
 
@@ -438,9 +392,6 @@ async function loadWeather(){
             index = 0;
         }
 
-        //
-        // 未来7小时
-        //
         let hourlyHtml = "";
 
         for(let i=1;i<=7;i++){
@@ -456,24 +407,20 @@ async function loadWeather(){
 
             hourlyHtml += `
                 <div class="hourBlock">
-
                     <div class="hourIcon">
                         ${weatherIcon(
                             d.hourly.weathercode[arrIndex]
                         )}
                     </div>
-
                     <div class="hourTemp">
                         ${Math.round(
                             d.hourly.temperature_2m[arrIndex]
                         )}°
                     </div>
-
                     <div class="hourTime">
                         ${String(hour)
                             .padStart(2,"0")}时
                     </div>
-
                 </div>
             `;
         }
@@ -483,9 +430,6 @@ async function loadWeather(){
             .innerHTML =
             hourlyHtml;
 
-        //
-        // 未来5天
-        //
         let forecastHtml = "";
 
         for(let i=0;i<5;i++){
@@ -497,26 +441,22 @@ async function loadWeather(){
 
             forecastHtml += `
                 <div class="day">
-
                     <div class="icon">
                         ${weatherIcon(
                             d.daily.weathercode[i]
                         )}
                     </div>
-
                     <div class="dayname">
                         ${
-                            ["日","一","二","三","四","五","六"]
+                            ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
                             [date.getDay()]
                         }
                     </div>
-
                     <div class="temp">
                         ${Math.round(
                             d.daily.temperature_2m_max[i]
                         )}°
                     </div>
-
                 </div>
             `;
         }
@@ -534,12 +474,6 @@ async function loadWeather(){
             .getElementById("location")
             .innerText =
             "佛山";
-    }
-}
-    }catch(e){
-
-        console.log(e);
-
     }
 }
 function updateBrightness(){
