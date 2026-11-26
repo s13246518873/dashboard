@@ -178,7 +178,21 @@ body{
     font-size:4vw;
     color:#ddd;
 }
-
+.quoteDivider{
+    width:85%;
+    height:1px;
+    background:#151515;
+    margin:18px 0 16px 0;
+}
+.quote{
+    margin-top:18px;
+    max-width:90%;
+    font-size:3.2vw;
+    color:#777;
+    line-height:1.5;
+    text-align:center;
+    min-height:4em;
+}
 </style>
 </head>
 
@@ -225,7 +239,10 @@ body{
 <div class="divider"></div>
 
 <div id="forecast" class="forecast"></div>
-
+<div class="quoteDivider"></div>
+<div id="quote" class="quote">
+    Loading...
+</div>
 </div>
 
 </div>
@@ -476,19 +493,76 @@ async function loadWeather(){
             "佛山";
     }
 }
+const backupQuotes = [
+
+    "人生缓缓，自有答案。",
+    "别赶路，去感受路。",
+    "允许一切发生。",
+    "慢一点，也没关系。",
+    "热爱可抵岁月漫长。",
+    "保持热爱，奔赴山海。",
+    "风有约，花不误。",
+    "答案在时间里。",
+    "好好生活，慢慢相遇。",
+    "凡是过往，皆为序章。",
+    "山高路远，看世界，也找自己。",
+    "不要解决不存在的问题。",
+    "Done is better than perfect.",
+    "复杂系统的敌人是复杂自己。",
+    "先跑起来，再优化。",
+    "今天也是值得期待的一天。",
+    "向前走，总会有路。",
+    "保持耐心和期待。",
+    "世界总会奖励行动的人。",
+    "生活不会辜负认真生活的人。"
+
+];
+async function loadQuote(){
+
+    try{
+
+const r = await fetch(
+    "https://v1.hitokoto.cn/?c=d&c=i&c=k&c=e&encode=json",
+    {
+        cache:"no-store"
+    }
+);
+
+        const d = await r.json();
+
+        document
+            .getElementById("quote")
+            .innerText =
+            d.hitokoto;
+
+    }catch(e){
+
+        const day =
+            Math.floor(
+                Date.now()/86400000
+            );
+
+        document
+            .getElementById("quote")
+            .innerText =
+            backupQuotes[
+                day % backupQuotes.length
+            ];
+    }
+}
 function updateBrightness(){
 
     const h = new Date().getHours();
 
-    if(h >= 22 || h < 9){
+    if(h >= 2 && h < 7){
 
         document.body.style.filter =
-            "brightness(10%)";
+            "brightness(15%)";
 
     }else{
 
         document.body.style.filter =
-            "brightness(50%)";
+            "brightness(90%)";
     }
 }
 
@@ -538,13 +612,14 @@ document.addEventListener(
 
 updateClock();
 loadWeather();
+loadQuote();
 antiBurn();
 keepAwake();
 
 setInterval(updateClock,1000);
 setInterval(loadWeather,1800000);
+setInterval(loadQuote,3600000);
 setInterval(antiBurn,1200000);
-
 </script>
 
 </body>
