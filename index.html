@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
-
 :root{
     --main:#d6d6d6;
     --sub:#9a9a9a;
@@ -146,18 +145,14 @@ body{
 }
 
 .forecast{
-
     width:98%;
-
     display:flex;
-
     justify-content:space-around;
+    margin-top:-25px;
 }
 
 .day{
-
     width:18%;
-
     text-align:center;
 }
 
@@ -185,7 +180,7 @@ body{
     margin:18px 0 16px 0;
 }
 .quote{
-    margin-top:18px;
+    margin-top:0px;
     max-width:90%;
     font-size:3.2vw;
     color:#777;
@@ -218,22 +213,16 @@ body{
 <div class="weatherCurrent">
 
     <div>
-
         <div id="weatherNow" class="weatherNow">
             ☁️19°
         </div>
-
         <div id="location" class="location">
             定位中...
         </div>
-
     </div>
-
 </div>
-
     <div id="hourly" class="hourly">
     </div>
-
 </div>
 
 <div class="divider"></div>
@@ -250,7 +239,32 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/solarlunar@2.0.7/lib/solarlunar.min.js"></script>
 
 <script>
+//
+// =====================================
+// 天气位置设置
+//
+// 修改下面城市名称与经纬度即可切换天气城市
+//
+// 佛山南海桂城
+// 23.0289,113.1415
+//
+// 广州天河
+// 23.1291,113.2644
+//
+// 深圳南山
+// 22.5333,113.9304
+//
+// 香港中环
+// 22.2819,114.1582
+//
+// =====================================
+//
 
+const WEATHER_LOCATION = {
+    name: "佛山",
+    lat: 23.0289,
+    lon: 113.1415
+};
 function weatherIcon(code){
 
     if(code===0) return "☀️";
@@ -329,53 +343,25 @@ async function loadWeather(){
 
     try{
 
-        let city = "佛山";
-        let lat = 23.0289;
-        let lon = 113.1415;
+        const city =
+            WEATHER_LOCATION.name;
 
-        try{
+        const lat =
+            WEATHER_LOCATION.lat;
 
-            const geo = await fetch(
-                "https://ipwho.is/",
-                {
-                    cache:"no-store"
-                }
-            );
-
-            const location =
-                await geo.json();
-
-            if(location.success !== false){
-
-                city =
-                    location.city ||
-                    "佛山";
-
-                lat =
-                    location.latitude ||
-                    lat;
-
-                lon =
-                    location.longitude ||
-                    lon;
-            }
-
-        }catch(e){
-
-            console.log(
-                "IP定位失败，使用佛山默认位置"
-            );
-        }
+        const lon =
+            WEATHER_LOCATION.lon;
 
         document
             .getElementById("location")
             .innerText =
             city;
 
-        const url =
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai`;
+const url =
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=weathercode,temperature_2m_max&forecast_days=5&timezone=Asia%2FShanghai`;       
 
-        const r =
+
+	   const r =
             await fetch(url);
 
         const d =
@@ -490,7 +476,7 @@ async function loadWeather(){
         document
             .getElementById("location")
             .innerText =
-            "佛山";
+            WEATHER_LOCATION.name;
     }
 }
 const backupQuotes = [
